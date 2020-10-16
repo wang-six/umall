@@ -5,12 +5,12 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="活动名称">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="活动名称" prop="title">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
 
-        <el-form-item label="活动期限">
+        <el-form-item label="活动期限" prop="time">
           <el-date-picker
             v-model="value"
             type="datetimerange"
@@ -21,7 +21,7 @@
           </el-date-picker>
         </el-form-item>
 
-        <el-form-item label="一级分类">
+        <el-form-item label="一级分类" prop="onelist">
           <el-select v-model="form.first_cateid" @change="changeFirst">
             <el-option label="请选择" value="" disabled></el-option>
             <el-option
@@ -32,7 +32,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="二级分类">
+        <el-form-item label="二级分类" prop="twolist">
           <el-select v-model="form.second_cateid" @change="changeTwo">
             <el-option label="请选择" value="" disabled></el-option>
             <el-option
@@ -43,7 +43,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="商品">
+        <el-form-item label="商品" prop="threelist">
           <el-select v-model="form.goodsid">
             <el-option label="请选择" value="" disabled></el-option>
             <el-option
@@ -88,6 +88,21 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        time: [
+          { required: true, message: "请选择活动期限", trigger: "change" },
+        ],
+        onelist: [
+          { required: true, message: "请选择一级分类", trigger: "change" },
+        ],
+        twolist: [
+          { required: true, message: "请选择二级分类", trigger: "change" },
+        ],
+        threelist: [
+          { required: true, message: "请选择商品", trigger: "change" },
+        ],
+        title: [{ required: true, message: "请输入活动名称", trigger: "blur" }],
+      },
       value: [],
       form: {
         first_cateid: "",
@@ -184,24 +199,31 @@ export default {
 
     //点击了添加按钮
     add() {
-      this.form.begintime = Date.parse(this.value[0]);
-      this.form.endtime = Date.parse(this.value[1]);
-      reqSeckAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
-
-          //数据重置
-          this.empty();
-
-          //弹框消失
-          this.cancel();
-
-          //list数据要刷新
-          this.reqListAction();
-        } else {
-          warningAlert(res.data.msg);
+      this.$refs.form.validate((valid) => {
+        if (!valid) {
+          warningAlert("请输入完整");
+          return;
         }
+
+        this.form.begintime = Date.parse(this.value[0]);
+        this.form.endtime = Date.parse(this.value[1]);
+        reqSeckAdd(this.form).then((res) => {
+          if (res.data.code == 200) {
+            //成功
+            successAlert(res.data.msg);
+
+            //数据重置
+            this.empty();
+
+            //弹框消失
+            this.cancel();
+
+            //list数据要刷新
+            this.reqListAction();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
       });
     },
     //获取菜单详情 （1条）

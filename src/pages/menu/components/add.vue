@@ -5,11 +5,11 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="菜单名称">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="菜单名称" prop="title">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
-        <el-form-item label="上级菜单">
+        <el-form-item label="上级菜单" prop="pid">
           <el-select
             v-model="form.pid"
             placeholder="请选择上级菜单"
@@ -28,14 +28,14 @@
           <el-radio v-model="form.type" :label="1" disabled>目录</el-radio>
           <el-radio v-model="form.type" :label="2" disabled>菜单</el-radio>
         </el-form-item>
-        <el-form-item label="菜单图标" v-if="form.type == 1">
+        <el-form-item label="菜单图标" v-if="form.type == 1" prop="icon">
           <el-select v-model="form.icon" placeholder="请选择图标">
             <el-option v-for="item in icons" :key="item" :value="item">
               <i :class="item"></i>
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="菜单地址" v-else>
+        <el-form-item label="菜单地址" v-else prop="url">
           <el-select v-model="form.url" placeholder="请选择地址">
             <el-option
               v-for="item in indexRouters"
@@ -79,6 +79,14 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        title: [{ required: true, message: "请输入菜单名称", trigger: "blur" }],
+        pid: [{ required: true, message: "请选择上级菜单", trigger: "change" }],
+        icon: [
+          { required: true, message: "请选择菜单图标", trigger: "change" },
+        ],
+        url: [{ required: true, message: "请选择菜单地址", trigger: "change" }],
+      },
       //图标
       icons: [
         "el-icon-s-tools",
@@ -138,26 +146,32 @@ export default {
     },
     //点击了添加按钮
     add() {
-      reqMenuAdd(this.form)
-        .then((res) => {
-          console.log(res);
+      this.$refs.form.validate((valid) => {
+        if (!valid) {
+          warningAlert("请填写完整");
+          return;
+        }
+        reqMenuAdd(this.form)
+          .then((res) => {
+            console.log(res);
 
-          if (res.data.code == 200) {
-            //成功
-            successAlert(res.data.msg);
-            //数据重置
-            this.empty();
-            //弹框消失
-            this.cancel();
-            //list数据要刷新
-            this.reqListAction();
-          } else {
-            warningAlert(res.data.msg);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+            if (res.data.code == 200) {
+              //成功
+              successAlert(res.data.msg);
+              //数据重置
+              this.empty();
+              //弹框消失
+              this.cancel();
+              //list数据要刷新
+              this.reqListAction();
+            } else {
+              warningAlert(res.data.msg);
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
     },
     //修改了pid
     changepid() {
@@ -169,7 +183,7 @@ export default {
     },
     //获取菜单详情（1条）
     look(id) {
-      console.log("1ddsf");
+      // console.log("1ddsf");
 
       reqMenuDetail(id).then((res) => {
         if (res.data.code == 200) {
@@ -182,7 +196,7 @@ export default {
     },
     //修改
     update() {
-      console.log(this.form);
+      // console.log(this.form);
 
       reqMenuUpdate(this.form).then((res) => {
         if (res.data.code == 200) {

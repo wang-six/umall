@@ -5,8 +5,8 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="规格名称">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="规格名称" prop="specsname">
           <el-input v-model="form.specsname"></el-input>
         </el-form-item>
 
@@ -57,6 +57,11 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        // specsname: [
+        //   { required: true, message: "请输入规格名称", trigger: "blur" },
+        // ],
+      },
       attrArr: [{ value: "" }, { value: "" }],
       form: {
         specsname: "",

@@ -6,8 +6,8 @@
       @closed="close"
       @opened="opened"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="一级分类">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="一级分类" prop="first_cateid">
           <el-select v-model="form.first_cateid" @change="changeFirst">
             <el-option label="请选择" value="" disabled></el-option>
             <el-option
@@ -18,7 +18,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="二级分类">
+        <el-form-item label="二级分类" prop="second_cateid">
           <el-select v-model="form.second_cateid">
             <el-option label="请选择" value="" disabled></el-option>
             <el-option
@@ -30,16 +30,16 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="商品名称">
+        <el-form-item label="商品名称" prop="goodsname">
           <el-input v-model="form.goodsname"></el-input>
         </el-form-item>
-        <el-form-item label="价格">
+        <el-form-item label="价格" prop="price">
           <el-input v-model="form.price"></el-input>
         </el-form-item>
-        <el-form-item label="市场价格">
+        <el-form-item label="市场价格" prop="market_price">
           <el-input v-model="form.market_price"></el-input>
         </el-form-item>
-        <el-form-item label="图片">
+        <el-form-item label="图片" prop="img">
           <div class="my-upload">
             <h3>+</h3>
             <img class="img" v-if="imgUrl" :src="imgUrl" alt="" />
@@ -51,7 +51,7 @@
             />
           </div>
         </el-form-item>
-        <el-form-item label="商品规格">
+        <el-form-item label="商品规格" prop="specsid">
           <el-select v-model="form.specsid" @change="changeSpecs">
             <el-option label="请选择" value=""></el-option>
             <el-option
@@ -62,7 +62,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="商品属性">
+        <el-form-item label="商品属性" prop="specsattr">
           <el-select v-model="form.specsattr" multiple>
             <el-option label="请选择" value=""></el-option>
             <el-option
@@ -90,7 +90,7 @@
             :inactive-value="2"
           ></el-switch>
         </el-form-item>
-        <el-form-item label="商品描述">
+        <el-form-item label="商品描述" prop="editor">
           <div v-if="info.isshow" id="editor"></div>
         </el-form-item>
       </el-form>
@@ -132,6 +132,29 @@ export default {
         isnew: 1,
         ishot: 1,
         status: 1,
+      },
+      rules: {
+        first_cateid: [
+          { required: true, message: "请选择一级分类", trigger: "change" },
+        ],
+        second_cateid: [
+          { required: true, message: "请选择二级分类", trigger: "change" },
+        ],
+        img: [{ required: true, message: "请选择图片", trigger: "change" }],
+        specsid: [
+          { required: true, message: "请选择商品规格", trigger: "change" },
+        ],
+        specsattr: [
+          { required: true, message: "请选择商品属性", trigger: "change" },
+        ],
+        editor: [
+          { required: true, message: "请输入商品描述", trigger: "blur" },
+        ],
+        goodsname: [{ required: true, message: "请输入商品", trigger: "blur" }],
+        price: [{ required: true, message: "请输入价格", trigger: "blur" }],
+        market_price: [
+          { required: true, message: "请输入市场价格", trigger: "blur" },
+        ],
       },
       //二级分类的list
       secondCateList: [],
@@ -249,29 +272,36 @@ export default {
 
     //点击了添加按钮
     add() {
-      //将富文本编辑器的内容取出来给form.description
-      this.form.description = this.editor.txt.html();
-      let data = {
-        ...this.form,
-        specsattr: JSON.stringify(this.form.specsattr),
-      };
-      reqGoodsAdd(data).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
-
-          //数据重置
-          this.empty();
-
-          //弹框消失
-          this.cancel();
-
-          //list数据要刷新
-          this.reqListAction();
-          this.reqTotalAction();
-        } else {
-          warningAlert(res.data.msg);
+      this.$refs.form.validate((valid) => {
+        if (!valid) {
+          warningAlert("请填写完整");
+          return;
         }
+
+        //将富文本编辑器的内容取出来给form.description
+        this.form.description = this.editor.txt.html();
+        let data = {
+          ...this.form,
+          specsattr: JSON.stringify(this.form.specsattr),
+        };
+        reqGoodsAdd(data).then((res) => {
+          if (res.data.code == 200) {
+            //成功
+            successAlert(res.data.msg);
+
+            //数据重置
+            this.empty();
+
+            //弹框消失
+            this.cancel();
+
+            //list数据要刷新
+            this.reqListAction();
+            this.reqTotalAction();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
       });
     },
     //获取菜单详情 （1条）

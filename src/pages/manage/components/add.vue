@@ -5,8 +5,8 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="所属角色">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="所属角色" prop="roleid">
           <el-select v-model="form.roleid" placeholder="请选择上级菜单">
             <el-option label="请选择" disabled value=""></el-option>
             <el-option
@@ -18,10 +18,10 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="用户名">
+        <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username"></el-input>
         </el-form-item>
-        <el-form-item label="密码">
+        <el-form-item label="密码" prop="password">
           <el-input v-model="form.password"></el-input>
         </el-form-item>
 
@@ -56,6 +56,15 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        roleid: [
+          { required: true, message: "请选择所属角色", trigger: "change" },
+        ],
+        username: [
+          { required: true, message: "请填写用户名", trigger: "blur" },
+        ],
+        password: [{ required: true, message: "请填写密码", trigger: "blur" }],
+      },
       form: {
         roleid: "",
         username: "",
@@ -98,20 +107,27 @@ export default {
     },
     //点击了添加按钮
     add() {
-      reqManageAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
-          //数据重置
-          this.empty();
-          //弹框消失
-          this.cancel();
-          //list数据要刷新
-          this.reqManageList();
-          this.reqTotalAction();
-        } else {
-          warningAlert(res.data.msg);
+      this.$refs.form.validate((valid) => {
+        if (!valid) {
+          warningAlert("请填写完整");
+          return;
         }
+
+        reqManageAdd(this.form).then((res) => {
+          if (res.data.code == 200) {
+            //成功
+            successAlert(res.data.msg);
+            //数据重置
+            this.empty();
+            //弹框消失
+            this.cancel();
+            //list数据要刷新
+            this.reqManageList();
+            this.reqTotalAction();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
       });
     },
     //获取菜单详情（1条）

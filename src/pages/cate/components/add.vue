@@ -5,8 +5,8 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="上级分类">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="上级分类" prop="pid">
           <el-select v-model="form.pid" placeholder="请选择上级分类">
             <el-option label="顶级分类" :value="0"></el-option>
             <el-option
@@ -18,11 +18,11 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="分类名称">
+        <el-form-item label="分类名称" prop="catename">
           <el-input v-model="form.catename"></el-input>
         </el-form-item>
         <!-- element-ui图片上传 -->
-        <el-form-item label="图片" v-if="form.pid != 0">
+        <el-form-item label="图片" v-if="form.pid != 0" prop="img">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -65,6 +65,13 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        pid: [{ required: true, message: "请选择上级分类", trigger: "change" }],
+        catename: [
+          { required: true, message: "请选择上级分类", trigger: "blur" },
+        ],
+        img: [{ required: true, message: "请选择图片", trigger: "change" }],
+      },
       imgUrl: "",
       form: {
         pid: 0,
@@ -128,19 +135,26 @@ export default {
     },
     //点击了添加按钮
     add() {
-      reqCateAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
-          //数据重置
-          this.empty();
-          //弹框消失
-          this.cancel();
-          //list数据要刷新
-          this.reqListAction();
-        } else {
-          warningAlert(res.data.msg);
+      this.$refs.form.validate((valid) => {
+        if (!valid) {
+          warningAlert("请填写完整");
+          return;
         }
+
+        reqCateAdd(this.form).then((res) => {
+          if (res.data.code == 200) {
+            //成功
+            successAlert(res.data.msg);
+            //数据重置
+            this.empty();
+            //弹框消失
+            this.cancel();
+            //list数据要刷新
+            this.reqListAction();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
       });
     },
     //获取菜单详情（1条）

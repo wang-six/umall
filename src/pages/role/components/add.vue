@@ -5,8 +5,8 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="角色名称">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="角色名称" prop="rolename">
           <el-input v-model="form.rolename"></el-input>
         </el-form-item>
         <!-- 树形控件 -->
@@ -54,6 +54,15 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        rolename: [
+          {
+            required: true,
+            message: "请输入角色名称",
+            trigger: "blur",
+          },
+        ],
+      },
       form: {
         rolename: "",
         menus: "[]",
@@ -94,17 +103,24 @@ export default {
     //点击了添加按钮
     add() {
       //树形控件取值
-      this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
-      reqRoleAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-
-          this.empty();
-          this.cancel();
-          this.reqRoleList();
-        } else {
-          warningAlert(res.data.msg);
+      this.$refs.form.validate((vaild) => {
+        if (!vaild) {
+          warningAlert("请填写完整");
+          return;
         }
+
+        this.form.menus = JSON.stringify(this.$refs.tree.getCheckedKeys());
+        reqRoleAdd(this.form).then((res) => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+
+            this.empty();
+            this.cancel();
+            this.reqRoleList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
       });
     },
     //获取一条数据

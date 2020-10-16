@@ -5,12 +5,12 @@
       :visible.sync="info.isshow"
       @closed="close"
     >
-      <el-form ref="form" :model="form" label-width="80px">
-        <el-form-item label="标题">
+      <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+        <el-form-item label="标题" prop="title">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
         <!-- element-ui图片上传 -->
-        <el-form-item label="图片">
+        <el-form-item label="图片" prop="img">
           <el-upload
             class="avatar-uploader"
             action="#"
@@ -53,6 +53,10 @@ export default {
   components: {},
   data() {
     return {
+      rules: {
+        img: [{ required: true, message: "请添加图片", trigger: "change" }],
+        title: [{ required: true, message: "请输入标题", trigger: "blur" }],
+      },
       imgUrl: "",
       form: {
         title: "",
@@ -114,19 +118,26 @@ export default {
     },
     //点击了添加按钮
     add() {
-      reqBannerAdd(this.form).then((res) => {
-        if (res.data.code == 200) {
-          //成功
-          successAlert(res.data.msg);
-          //数据重置
-          this.empty();
-          //弹框消失
-          this.cancel();
-          //list数据要刷新
-          this.reqListAction();
-        } else {
-          warningAlert(res.data.msg);
+      this.$refs.form.validate((valid) => {
+        if (!valid) {
+          warningAlert("请输入完整");
+          return;
         }
+
+        reqBannerAdd(this.form).then((res) => {
+          if (res.data.code == 200) {
+            //成功
+            successAlert(res.data.msg);
+            //数据重置
+            this.empty();
+            //弹框消失
+            this.cancel();
+            //list数据要刷新
+            this.reqListAction();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
       });
     },
     //获取菜单详情（1条）
